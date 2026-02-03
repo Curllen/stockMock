@@ -1,0 +1,5 @@
+flask==3.0.0
+baostock>=0.8.9
+pandas==2.1.0
+gunicorn==21.2.0
+numpy<2.0.0

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a12">
+    <title>股票倍投策略模拟器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- 上半部分：数据表格 -->
+    <div id="data-table-container">
+        <div class="table-header">
+            <h3>股票数据</h3>
+            <span id="data-count">暂无数据</span>
+        </div>
+        <div id="data-table-wrapper">
+            <table id="stock-data-table">
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>开盘价</th>
+                        <th>最高价</th>
+                        <th>最低价</th>
+                        <th>收盘价</th>
+                        <th>成交量</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr>
+                        <td colspan="6" class="no-data">请先获取数据</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 下半部分：K线图 -->
+    <div id="chart-container" aria-label="资金变化图表">
+        <canvas id="funds-chart" role="img"></canvas>
+    </div>
+
+    <!-- 控制面板 -->
+    <div id="menu" role="region" aria-label="控制面板">
+        <div class="control-layout">
+            <!-- 左侧：参数设置 -->
+            <div class="ui-panel params-panel" role="group" aria-labelledby="control-panel-title">
+                <h2 id="control-panel-title" class="panel-title">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    参数设置
+                </h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stock-code">股票代码</label>
+                        <input type="text" id="stock-code" placeholder="例如: sz.000001">
+                    </div>
+                    <div class="form-group">
+                        <label for="start-date">开始日期</label>
+                        <input type="text" id="start-date" placeholder="例如: 2023-01-01">
+                    </div>
+                    <div class="form-group">
+                        <label for="end-date">结束日期</label>
+                        <input type="text" id="end-date" placeholder="例如: 2026-01-01">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="strategy">倍投策略</label>
+                        <select id="strategy">
+                            <option value="close" selected>当日收盘价倍投</option>
+                            <option value="open">当日开盘价倍投</option>
+                            <option value="high">当日最高价倍投</option>
+                            <option value="low">当日最低价倍投</option>
+                            <option value="avg">当日均价倍投</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="total-funds">总资金</label>
+                        <input type="number" id="total-funds" min="1000" value="100000">
+                    </div>
+                    <div class="form-group">
+                        <label for="initial-stock-count">初始股数</label>
+                        <input type="number" id="initial-stock-count" min="100" value="100" step="100">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="simulation-interval">模拟间隔(毫秒)</label>
+                        <input type="number" id="simulation-interval" min="10" max="5000" value="100" step="10">
+                    </div>
+                    <div class="form-group"></div>
+                    <div class="form-group"></div>
+                </div>
+
+                <div class="button-group">
+                    <button id="fetch-btn" class="btn-secondary">获取数据</button>
+                    <button id="start-btn" class="btn-primary">开始回测</button>
+                    <button id="reset-btn" class="btn-danger">重置</button>
+                </div>
+            </div>
+
+            <!-- 右侧：统计信息 -->
+            <div class="ui-panel stats-panel" role="group" aria-labelledby="stats-panel-title">
+                <h2 id="stats-panel-title" class="panel-title">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 21l-6-6m6 6l-6 6m6-16a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    回测统计
+                </h2>
+
+                <div class="status-display">
+                    当前状态: <span id="simulation-status">就绪</span>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="current-price">0.00</div>
+                        <div class="stat-label">当前股价</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="current-funds">0</div>
+                        <div class="stat-label">当前资产市值</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="remaining-funds">0</div>
+                        <div class="stat-label">当前剩余资金</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="held-stocks">0</div>
+                        <div class="stat-label">持仓股数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-asset">0</div>
+                        <div class="stat-label">总资产(市值+现金)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="final-value">0</div>
+                        <div class="stat-label">最终股票价值</div>
+                    </div>
+                </div>
+
+                <div id="result-display" class="result" role="alert" aria-live="assertive"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="chart.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
