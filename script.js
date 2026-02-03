@@ -75,6 +75,7 @@ const elements = {
     finalValueEl: document.getElementById('final-value'),
 
     statusEl: document.getElementById('simulation-status'),
+    currentDateEl: document.getElementById('current-date-display'),
     resultDisplay: document.getElementById('result-display'),
 
     tableBody: document.getElementById('table-body'),
@@ -279,6 +280,7 @@ function resetSimulation() {
     elements.remainingFundsEl.textContent = elements.totalFundsInput.value;
     elements.heldStocksEl.textContent = "0";
     elements.totalAssetEl.textContent = elements.totalFundsInput.value;
+    elements.currentDateEl.textContent = "未开始";
     elements.finalValueEl.textContent = "0";
     elements.resultDisplay.style.display = 'none';
     populateDataTable(); // Clear or re-render table
@@ -338,6 +340,7 @@ async function startSimulation() {
     chart.data.datasets[1].data.push(firstMarketValue);
 
     // Update UI with first day data
+    elements.currentDateEl.textContent = firstDay.date;
     elements.currentPriceEl.textContent = initialPrice.toFixed(2);
     elements.heldStocksEl.textContent = state.heldStocks;
     elements.remainingFundsEl.textContent = state.remainingFunds.toFixed(2);
@@ -422,6 +425,7 @@ function runSimulationStep() {
 }
 
 function updateUI(date, price, marketValue, totalAsset) {
+    elements.currentDateEl.textContent = date;
     elements.currentPriceEl.textContent = price.toFixed(2);
     elements.heldStocksEl.textContent = state.heldStocks;
     elements.remainingFundsEl.textContent = state.remainingFunds.toFixed(2);

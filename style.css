@@ -291,7 +291,8 @@ body {
     color: var(--text-light);
 }
 
-#simulation-status {
+#simulation-status,
+#current-date-display {
     color: var(--primary);
     font-weight: 600;
 }
